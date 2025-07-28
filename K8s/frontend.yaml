@@ -1,0 +1,65 @@
+#frontend.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: frontend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: frontend
+  template:
+    metadata:
+      labels:
+        app: frontend
+    spec:
+      containers:
+        - name: frontend
+          image: ranyabrkumar/ecom-frontend:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 80
+          env:
+            - name: REACT_APP_USER_SERVICE_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: frontend-config
+                  key: REACT_APP_USER_SERVICE_URL
+            - name: REACT_APP_PRODUCT_SERVICE_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: frontend-config
+                  key: REACT_APP_PRODUCT_SERVICE_URL
+            - name: REACT_APP_CART_SERVICE_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: frontend-config
+                  key: REACT_APP_CART_SERVICE_URL
+            - name: REACT_APP_ORDER_SERVICE_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: frontend-config
+                  key: REACT_APP_ORDER_SERVICE_URL
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: frontend
+spec:
+  type: NodePort # Use LoadBalancer in Cloud
+  selector:
+    app: frontend
+  ports:
+    - port: 80
+      targetPort: 80
+      nodePort: 30000
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: frontend-config
+data:
+  REACT_APP_USER_SERVICE_URL: "http://user-service:3001"
+  REACT_APP_PRODUCT_SERVICE_URL: "http://192.168.65.3:30002"
+  REACT_APP_CART_SERVICE_URL: "http://cart-service:3003"
+  REACT_APP_ORDER_SERVICE_URL: "http://order-service:3004"
